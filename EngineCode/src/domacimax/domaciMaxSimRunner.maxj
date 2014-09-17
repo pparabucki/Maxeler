@@ -1,0 +1,33 @@
+package domacimax;
+
+import com.maxeler.maxcompiler.v2.managers.standard.SimulationManager;
+
+public class domaciMaxSimRunner {
+	public static void main(String[] args){
+		SimulationManager ma = new SimulationManager("domaciMaxSim");
+		domaciMaxKernel k = new domaciMaxKernel(ma.makeKernelParameters());
+		ma.logMsg("USAO U TEST");
+		ma.setKernel(k);
+
+		//ma.setStreamOffsetParam("loopOffset", 16);
+		ma.setParameter("s", "12");
+
+		ma.setParameter("m", "4" );
+		ma.setParameter("n", "3" );
+
+		ma.setScalarInput("m", 4 );
+		ma.setScalarInput("n", 3 );
+
+
+		ma.setInputData("nizC", 2 , 4 , 6 , 8 , 2 , 4 , 6 , 8 , 2 , 4 , 6 , 8 );
+		ma.setInputData("nizX", 3 , 3 , 3 , 3 , 5 , 5 , 5 , 5 , 7 , 7 , 7 , 7 );
+		ma.setKernelCycles(12*16);
+		ma.logMsg("pre run test");
+		ma.runTest();
+		ma.dumpOutput();
+		double expectedOutput[] = { 2 , 14 , 68 , 284 , 2 ,22 , 172 , 1172 , 2 , 30 , 324 , 3068 };
+		ma.checkOutputData("data_out", expectedOutput);
+		ma.logMsg("TEST PASSED OK!");
+
+	}
+}

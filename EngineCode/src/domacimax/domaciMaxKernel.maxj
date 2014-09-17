@@ -1,0 +1,60 @@
+package domacimax;
+
+import com.maxeler.maxcompiler.v2.kernelcompiler.Kernel;
+import com.maxeler.maxcompiler.v2.kernelcompiler.KernelParameters;
+import com.maxeler.maxcompiler.v2.kernelcompiler.stdlib.core.Stream.OffsetExpr;
+import com.maxeler.maxcompiler.v2.kernelcompiler.types.base.DFEType;
+import com.maxeler.maxcompiler.v2.kernelcompiler.types.base.DFEVar;
+
+class domaciMaxKernel extends Kernel {
+
+	private static final DFEType type = dfeUInt(64);
+	private static final DFEType ftype = dfeFloat(11,53);
+
+	protected domaciMaxKernel(KernelParameters parameters) {
+		super(parameters);
+
+		OffsetExpr loop = stream.makeOffsetAutoLoop("loop");
+		DFEVar m = io.scalarInput("m", type);
+		DFEVar n = io.scalarInput("n", type);
+		DFEVar loopVal = loop.getDFEVar(this,type);
+		DFEVar cnt = control.count.simpleCounter(64,m*loopVal);
+		DFEVar cntF = control.count.simpleCounter(64,m*loopVal*n);
+		DFEVar cnt_output = control.count.simpleCounter(64,loopVal);
+
+		DFEVar nizC = io.input("nizC", ftype , cnt_output.eq(0));
+		DFEVar nizX = io.input("nizX", ftype , cnt_output.eq(0));
+
+
+
+		DFEVar  sum , pow ;
+
+
+		sum = ftype.newInstance(this);
+		pow = ftype.newInstance(this);
+
+		pow <== cnt<loopVal?1:nizX*stream.offset(pow, -loop);
+
+
+		sum <== cnt<loopVal? nizC : pow*nizC + stream.offset(sum, -loop);
+
+		nizX.simWatch("nizX");
+		nizC.simWatch("nizC");
+		sum.simWatch("sum");
+
+		pow.simWatch("pow");
+		cnt.simWatch("cnt");
+		cnt_output.simWatch("cnt_out");
+		cntF.simWatch("cntF");
+		loopVal.simWatch("loopVal");
+
+
+
+		io.output("data_out", sum , ftype , cnt_output.eq(0));
+		//cnt = cnt.gt(n) ?control.count.simpleCounter(64):cnt;
+
+
+
+	}
+
+}
